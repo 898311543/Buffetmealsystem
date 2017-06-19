@@ -1,6 +1,7 @@
 package com.example.a13051_000.buffetmealsystem;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -38,6 +39,7 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    private AppBarLayout appBarLayout;
     private ViewPager viewPager;
     private TabLayout tabLayout;
 
@@ -152,7 +154,13 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
             return;
         }
-        else { Toast.makeText(getBaseContext(), "再按一次即可退出", Toast.LENGTH_SHORT).show(); }
+        else {
+            Toast toast = Toast.makeText(MainActivity.this,"再按一次即可退出。",Toast.LENGTH_SHORT);
+            View view = toast.getView();
+            view.setBackgroundColor(Color.parseColor("#FF8C00"));
+            toast.setView(view);
+            toast.show();
+        }
 
         mBackPressed = System.currentTimeMillis();
     }
@@ -163,21 +171,6 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
-        MenuItem menuItem = menu.findItem(R.id.ab_search);
-        searchView = (SearchView) MenuItemCompat.getActionView(menuItem);
-        MenuItemCompat.setOnActionExpandListener(menuItem, new MenuItemCompat.OnActionExpandListener() {//设置打开关闭动作监听
-            @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
-                Toast.makeText(MainActivity.this, "onExpand", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-
-            @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
-                Toast.makeText(MainActivity.this, "Collapse", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-        });
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -193,10 +186,6 @@ public class MainActivity extends AppCompatActivity
             Intent intent1 = new Intent(MainActivity.this,SettingsActivity.class);
             this.startActivity(intent1);
         }
-        if(id == R.id.action_sao){
-            Intent intent = new Intent(MainActivity.this,ScanActivity.class);
-            this.startActivity(intent);
-        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -207,8 +196,8 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
+            Intent intent = new Intent(MainActivity.this,ToolActivity.class);
+            MainActivity.this.startActivity(intent);
 
         }
 

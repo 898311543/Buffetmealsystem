@@ -3,12 +3,15 @@ package com.example.a13051_000.buffetmealsystem.Order;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -62,6 +65,7 @@ public class OrderCar extends AppCompatActivity {
     private int sum = 0;
     private int[] sumInteger;
     private Context context;
+    private float price;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,38 +82,61 @@ public class OrderCar extends AppCompatActivity {
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                List<OrderForm> orderForms = orderformDataSource.getAllForm();
-                StringBuilder stringBuilder = new StringBuilder();
-               HashMap<Integer,Boolean> isSelected =  OrderCarAdapter.getIsSelected();
-                int i = 0;
-                for (OrderForm orderform: orderForms
-                     ) {
-                    if (isSelected.get(i)) {
-                        if (stringBuilder.length() == 0) {
-                            stringBuilder.append(orderform.getId_server());
-                            stringBuilder.append("/" + orderform.getNum());
-                        } else {
-                            stringBuilder.append("@" + orderform.getId_server());
-                            stringBuilder.append("/" + orderform.getNum());
-                        }
-                    }
-                    i++;
-                }
-                Log.d("submit_data",stringBuilder.toString());
-                submit_data submitData = new submit_data(OrderCar.this);
                 if(seat_info.seat_num == null){
-                    Toast.makeText(OrderCar.this,"请先选择座位号。",Toast.LENGTH_SHORT).show();
+                    Toast toast = Toast.makeText(OrderCar.this,"请先选择座位号。",Toast.LENGTH_SHORT);
+                    View view = toast.getView();
+                    view.setBackgroundColor(Color.parseColor("#FF8C00"));
+                    toast.setView(view);
+                    toast.show();
+                }else if(price == 0 ){
+                    Toast toast = Toast.makeText(OrderCar.this,"餐车为空，请选择菜品",Toast.LENGTH_SHORT);
+                    View view = toast.getView();
+                    view.setBackgroundColor(Color.parseColor("#FF8C00"));
+                    toast.setView(view);
+                    toast.show();
                 }else {
-                    seat_num = seat_info.seat_num;
-                    submitData.execute(stringBuilder.toString());
-                    data.clear();
-                    orderCarAdapter.notifyDataSetChanged();
-                    integral_sum.setText(0 + "");
-                    checkBox_select_all.setChecked(false);
-                    checkBox_add.setChecked(false);
-                    OrderformDataSource orderformDataSource1 = new OrderformDataSource(OrderCar.this);
-                    orderformDataSource1.open();
-                    orderformDataSource1.deleteAllOrderform();
+                    new AlertDialog.Builder(OrderCar.this).setTitle("确定提交订单？").
+                            setMessage("如要提交订单，请先确定，用餐完毕后请到前台用现金支付").
+                            setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int i) {
+
+                                }
+                            }).setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int k) {
+                            List<OrderForm> orderForms = orderformDataSource.getAllForm();
+                            StringBuilder stringBuilder = new StringBuilder();
+                            HashMap<Integer, Boolean> isSelected = OrderCarAdapter.getIsSelected();
+                            int i = 0;
+                            for (OrderForm orderform : orderForms
+                                    ) {
+                                if (isSelected.get(i)) {
+                                    if (stringBuilder.length() == 0) {
+                                        stringBuilder.append(orderform.getId_server());
+                                        stringBuilder.append("/" + orderform.getNum());
+                                    } else {
+                                        stringBuilder.append("@" + orderform.getId_server());
+                                        stringBuilder.append("/" + orderform.getNum());
+                                    }
+                                }
+                                i++;
+                            }
+                            Log.d("submit_data", stringBuilder.toString());
+                            submit_data submitData = new submit_data(OrderCar.this);
+                            seat_num = seat_info.seat_num;
+                            submitData.execute(stringBuilder.toString());
+                            data.clear();
+                            orderCarAdapter.notifyDataSetChanged();
+                            integral_sum.setText(0 + "");
+                            checkBox_select_all.setChecked(false);
+                            checkBox_add.setChecked(false);
+                            OrderformDataSource orderformDataSource1 = new OrderformDataSource(OrderCar.this);
+                            orderformDataSource1.open();
+                            orderformDataSource1.deleteAllOrderform();
+
+                        }
+                    }).show();
                 }
             }
         });
@@ -118,8 +145,67 @@ public class OrderCar extends AppCompatActivity {
         pay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(OrderCar.this, PayActivity.class);
-                OrderCar.this.startActivity(intent);
+                if (price == 0){
+                    Toast toast1 = Toast.makeText(getApplicationContext(),"餐车为空，请选择菜品再进行支付宝支付",Toast.LENGTH_SHORT);
+                    View view1 = toast1.getView();
+                    view1.setBackgroundColor(Color.parseColor("#FF8C00"));
+                    toast1.setView(view1);
+                    toast1.show();
+                }
+                else {
+                    new AlertDialog.Builder(OrderCar.this).setMessage("确定使用支付宝支付？").
+                            setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                        }
+                    }).setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int k) {
+                            List<OrderForm> orderForms = orderformDataSource.getAllForm();
+                            StringBuilder stringBuilder = new StringBuilder();
+                            HashMap<Integer,Boolean> isSelected =  OrderCarAdapter.getIsSelected();
+                            int i = 0;
+                            for (OrderForm orderform: orderForms
+                                    ) {
+                                if (isSelected.get(i)) {
+                                    if (stringBuilder.length() == 0) {
+                                        stringBuilder.append(orderform.getId_server());
+                                        stringBuilder.append("/" + orderform.getNum());
+                                    } else {
+                                        stringBuilder.append("@" + orderform.getId_server());
+                                        stringBuilder.append("/" + orderform.getNum());
+                                    }
+                                }
+                                i++;
+                            }
+                            Log.d("submit_data",stringBuilder.toString());
+                            submit_data submitData = new submit_data(OrderCar.this);
+                            if(seat_info.seat_num == null){
+                                Toast toast = Toast.makeText(OrderCar.this,"请先选择座位号。",Toast.LENGTH_SHORT);
+                                View view1 = toast.getView();
+                                view1.setBackgroundColor(Color.parseColor("#FF8C00"));
+                                toast.setView(view1);
+                                toast.show();
+                            }else {
+                                seat_num = seat_info.seat_num;
+                                submitData.execute(stringBuilder.toString());
+                                data.clear();
+                                orderCarAdapter.notifyDataSetChanged();
+                                integral_sum.setText(0 + "");
+                                checkBox_select_all.setChecked(false);
+                                checkBox_add.setChecked(false);
+                                OrderformDataSource orderformDataSource1 = new OrderformDataSource(OrderCar.this);
+                                orderformDataSource1.open();
+                                orderformDataSource1.deleteAllOrderform();
+                            }
+                            Intent intent = new Intent(OrderCar.this, PayActivity.class);
+                            String pay = String.valueOf(price);
+                            intent.putExtra("pay_detail", pay);
+                            OrderCar.this.startActivity(intent);
+                        }
+                    }).show();
+                }
             }
         });
 
@@ -155,6 +241,7 @@ public class OrderCar extends AppCompatActivity {
             }
         });
         checkBox_select_all = (CheckBox) findViewById(R.id.checkbox_select);
+        checkBox_select_all.setVisibility(View.INVISIBLE);
         checkBox_select_all.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -210,7 +297,7 @@ public class OrderCar extends AppCompatActivity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             if (msg.what == 10) { //更改选中商品的总价格
-                float price = (Float) msg.obj;
+                price = (Float) msg.obj;
                 if (price > 0) {
                     integral_sum.setText(price + "");
                 } else {
@@ -259,7 +346,11 @@ class submit_data extends AsyncTask<String,Void,ResultFromServer>{
         super.onPostExecute(resultFromServer);
         if (resultFromServer != null){
             if (resultFromServer.getStatus().equals("0")){
-                Toast.makeText(context,"结算成功..",Toast.LENGTH_SHORT).show();
+                Toast toast = Toast.makeText(context,"结算成功..",Toast.LENGTH_SHORT);
+                View view = toast.getView();
+                view.setBackgroundColor(Color.parseColor("#FF8C00"));
+                toast.setView(view);
+                toast.show();
             }
             else Toast.makeText(context,"结算失败..",Toast.LENGTH_SHORT).show();
         }
